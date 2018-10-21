@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import images from '../../data/images';
 
-import './styles.css';
+import './sliderwrapper.css';
+import './slider-container.css';
 
 class SliderWrapper extends Component {
     constructor(props) {
@@ -13,21 +14,21 @@ class SliderWrapper extends Component {
             currentIndex: 0,
             availableIndex: null,
             position: 0,
-            containerWidth: null,
-            imageContainerWidth: null,
+            visibleContainerWidth: null,
+            allImagesWidth: null,
         };
     }
 
     componentDidMount() {
-        this.calculateIndex();
+        this.calculateIndexAndWidth();
     }
 
     goBack = (event) => {
         const {
-            currentIndex, position, containerWidth,
+            currentIndex, position, visibleContainerWidth,
         } = this.state;
         event.preventDefault();
-        let newPosition = position + containerWidth;
+        let newPosition = position + visibleContainerWidth;
         const newIndex = currentIndex - 1;
 
         // Check if newindex is 0 then position should be zero, adjustment if remainder is smaller than container width
@@ -43,14 +44,14 @@ class SliderWrapper extends Component {
 
     goForward = (event) => {
         const {
-            currentIndex, position, containerWidth, imageContainerWidth,
+            currentIndex, position, visibleContainerWidth, allImagesWidth,
         } = this.state;
         event.preventDefault();
 
-        let newPosition = position - containerWidth;
+        let newPosition = position - visibleContainerWidth;
         // Check if remainder of container is smaller than the new pos and adjust the container to the remainder
-        if ((imageContainerWidth + newPosition) < containerWidth) {
-            newPosition = Math.abs(imageContainerWidth - containerWidth) * -1;
+        if ((allImagesWidth + newPosition) < visibleContainerWidth) {
+            newPosition = Math.abs(allImagesWidth - visibleContainerWidth) * -1;
         }
         const newIndex = currentIndex + 1;
 
@@ -60,16 +61,16 @@ class SliderWrapper extends Component {
         });
     }
 
-    calculateIndex() {
+    calculateIndexAndWidth() {
         const imageWidth = this.imageContainer.getBoundingClientRect().width;
-        const containerWidth = this.sliderContainer.getBoundingClientRect().width;
-        const imageContainerWidth = imageWidth * images.length;
-        const availableIndex = Math.ceil(imageContainerWidth / containerWidth) - 1;
+        const visibleContainerWidth = this.sliderContainer.getBoundingClientRect().width;
+        const allImagesWidth = imageWidth * images.length;
+        const availableIndex = Math.ceil(allImagesWidth / visibleContainerWidth) - 1;
 
         this.setState({
             availableIndex,
-            containerWidth,
-            imageContainerWidth,
+            visibleContainerWidth,
+            allImagesWidth,
         });
     }
 
@@ -81,7 +82,7 @@ class SliderWrapper extends Component {
             <div className="sliderwrapper">
                 {currentIndex !== 0 && (
                     <a href="#back" onClick={this.goBack} className="sliderwrapper__link sliderwrapper__link--back">
-                        <span role="img">⬅️</span>
+                        <span aria-label="back" role="img">⬅️</span>
                     </a>
                 )}
                 <ul style={{ transform: `translateX(${position}px)` }} ref={ref => this.sliderContainer = ref} className="slider-container">
@@ -93,12 +94,12 @@ class SliderWrapper extends Component {
                 </ul>
                 {currentIndex !== availableIndex && (
                     <a href="#forward" onClick={this.goForward} className="sliderwrapper__link sliderwrapper__link--forward">
-                        <span role="img">➡️</span>
+                        <span aria-label="forward" role="img">➡️</span>
                     </a>)}
                 <div className="sliderwrapper__circle-container">
-                    {Array(remainingCirclesLeft).fill(<span className="sliderwrapper__circle">○</span>)}
-                    <span className="sliderwrapper__circle">●</span>
-                    {Array(remainingCirclesRight).fill(<span className="sliderwrapper__circle">○</span>)}
+                    {Array(remainingCirclesLeft).fill(<span role="img" aria-label="empty-circle" className="sliderwrapper__circle">○</span>)}
+                    <span role="img" aria-label="filled-circle" className="sliderwrapper__circle">●</span>
+                    {Array(remainingCirclesRight).fill(<span role="img" aria-label="empty-circle" className="sliderwrapper__circle">○</span>)}
                 </div>
             </div>
         );
